@@ -1,7 +1,7 @@
 /* Layout: cabeçalho com placar das duas irmãs, filtros fixos, grade de cartões em grupos na ordem da conversa */
 /* Tema claro fixo, tons pastel de enxoval: azul-céu, creme e bolinhas suaves */
 :root{
-  color-scheme:light;
+  color-scheme:light dark;
   --bg:#eef6fc; --dots:#d8eaf7; --surface:#ffffff; --fg:#3a4a5c; --muted:#7a8a9c; --line:#d6e6f2;
   --luma:#6a9fd4; --luma-soft:#e3effa; --luana:#e59ab4; --luana-soft:#fbe9ef;
   --both:#7cbf9e; --note:#fff8ea; --title:#4f7fb3;
@@ -81,3 +81,6 @@ header h1,.box h1{color:var(--title)}
 header h1,.box h1,section h2,.num{font-weight:600}
 section h2{color:var(--title)}
 .box button{border-radius:999px}
+/* O navegador Samsung só deixa de escurecer o site sozinho quando o site declara ter um tema escuro.
+   Este "tema escuro" repete as mesmas cores claras, então o visual continua igual. */
+@media (prefers-color-scheme:dark){:root{color-scheme:light dark}body{background-color:#eef6fc;color:#3a4a5c}}
