@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex">
 <title>Fraldas do Vicente</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 <style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -53,7 +53,7 @@
 <div class="toast" id="toast" hidden></div>
 
 <script type="module">
-import { firebaseConfig } from "./firebase-config.js?v=6";
+import { firebaseConfig } from "./firebase-config.js?v=7";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -111,7 +111,7 @@ function render(){
     ms.forEach(m=>{
       const a=state.luma.has(m.id),b=state.luana.has(m.id);
       const c=document.createElement("article"); c.className="card"+(a?" sel-luma":"")+(b?" sel-luana":"");
-      c.innerHTML=`<button class="thumb" type="button" aria-label="Ampliar modelo ${m.n}"><img loading="lazy" src="fotos/${m.id}.jpg" alt="Modelo ${m.n}: ${m.nome}"></button>
+      c.innerHTML=`<button class="thumb" type="button" aria-label="Ampliar modelo ${m.n}"><img loading="lazy" src="fotos/${m.id}.jpg?v=7" alt="Modelo ${m.n}: ${m.nome}"></button>
         <div class="info"><div class="top"><span class="num">Modelo ${m.n}</span>${a&&b?'<span class="tag" style="color:var(--both)">As duas</span>':""}</div>
         <p class="c">${m.nome}</p>
         <div class="picks"><button type="button" class="pick luma" aria-pressed="${a}" ${eu!=="luma"?"disabled":""}>${a?"✓ ":""}Luma</button><button type="button" class="pick luana" aria-pressed="${b}" ${eu!=="luana"?"disabled":""}>${b?"✓ ":""}Luana</button></div></div>`;
@@ -139,7 +139,7 @@ document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{filtro=b.dataset.f;
 let tt;function toast(m){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2400)}
 const dlg=$("dlg");let cur=0;
 function openDlg(id){cur=ALL.findIndex(m=>m.id===id);showDlg();if(!dlg.open)dlg.showModal()}
-function showDlg(){const m=ALL[cur];$("dlgImg").src=`fotos/${m.id}.jpg`;$("dlgImg").alt=m.nome;$("dlgCap").textContent=`Modelo ${m.n} · ${m.nome}`}
+function showDlg(){const m=ALL[cur];$("dlgImg").src=`fotos/${m.id}.jpg?v=7`;$("dlgImg").alt=m.nome;$("dlgCap").textContent=`Modelo ${m.n} · ${m.nome}`}
 $("prev").onclick=()=>{cur=(cur-1+ALL.length)%ALL.length;showDlg()};
 $("next").onclick=()=>{cur=(cur+1)%ALL.length;showDlg()};
 $("close").onclick=()=>dlg.close();
