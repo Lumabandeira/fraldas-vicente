@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Fraldas do Vicente</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap">
+<link rel="stylesheet" href="style.css">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+
+<div class="login" id="loginView">
+  <form class="box" id="loginForm">
+    <h1>Fraldas do Vicente</h1>
+    <p>Entre para marcar os seus modelos preferidos.</p>
+    <label for="quem">Quem é você?
+      <select id="quem"><option value="luma">Luma</option><option value="luana">Luana</option></select>
+    </label>
+    <label for="senha">Senha
+      <input id="senha" type="password" autocomplete="current-password" required>
+    </label>
+    <div class="err" id="err" role="alert"></div>
+    <button type="submit" id="entrar">Entrar</button>
+  </form>
+</div>
+
+<div class="wrap" id="appView" hidden>
+  <div class="userbar"><span id="ola"></span><button type="button" id="sair">Sair</button></div>
+  <header>
+    <h1>Fraldas do Vicente</h1>
+    <p>Todos os modelos, na ordem em que foram enviados. Marque os seus no botão com o seu nome. As escolhas da outra aparecem aqui também. Toque na foto para ver maior.</p>
+    <div class="score">
+      <div class="who luma"><div class="dot">L</div><div><b>Luma</b><span id="cLuma">0 escolhidas</span></div><button class="copy" id="copyLuma" type="button">Copiar lista</button></div>
+      <div class="who luana"><div class="dot">L</div><div><b>Luana</b><span id="cLuana">0 escolhidas</span></div><button class="copy" id="copyLuana" type="button">Copiar lista</button></div>
+    </div>
+  </header>
+  <div class="bar" role="group" aria-label="Filtro">
+    <button class="chip" type="button" data-f="todos" aria-pressed="true">Todos</button>
+    <button class="chip" type="button" data-f="luma" aria-pressed="false">Escolhas da Luma</button>
+    <button class="chip" type="button" data-f="luana" aria-pressed="false">Escolhas da Luana</button>
+    <button class="chip" type="button" data-f="ambas" aria-pressed="false">Em comum</button>
+  </div>
+  <main id="list"></main>
+</div>
+
+<dialog id="dlg" aria-label="Foto ampliada">
+  <img id="dlgImg" alt="">
+  <div class="dlg"><span id="dlgCap"></span><span><button type="button" id="prev">‹ Anterior</button> <button type="button" id="next">Próxima ›</button> <button type="button" id="close">Fechar</button></span></div>
+</dialog>
+<div class="toast" id="toast" hidden></div>
+
+<script type="module">
+import { firebaseConfig } from "./firebase-config.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const DOMINIO = "@fraldas-vicente.app";
+const GROUPS=[
+ {t:"Primeiro álbum",items:[["01","Carrinhos (Bento)"],["02","Cavalinho com brasão (Joaquim)"],["03","Brasão JM com ursinho"],["04","Pedro em bege"],["05","Carrinhos e balões (Ravi)"],["06","Bichinhos com barrado xadrez (Pedro)"],["07","Carrinhos coloridos com barrado amarelo (Pedro)"],["08","Dinossauro aquarela (Henrique)"],["09","Balões (Antônio)"],["10","Bichinhos em bege (João Pedro)"],["11","Bichos da selva em azul (Davi Miguel)"],["12","Ursinhos e balões (João Lucas)"],["13","Dinossauros (Pedro)"],["14","Safári com trenzinho (Theo)"]]},
+ {t:"Mais ideias",items:[["15","Selva (Bryan)"],["16","Turma do Pooh (Adson Manoel)"],["17","Espaço e astronautas"],["18","Ursinho aviador no balão"],["19","Carrinhos azuis"],["20","Bloquinhos e balão (Gustavo)"],["21","Misturado (Luci)"]]},
+ {t:"Fundo do mar",items:[["22","Fundo do mar (Nicholas)"],["23","Fundo do mar (Samuel)"],["24","Fundo do mar com baleia (Henri)"],["25","Fundo do mar colorido"]]},
+ {t:"Mais delicada",items:[["32","Trenzinho de bichos (Theo)"]]},
+ {t:"Últimos modelos",items:[["33","Bichinhos em bege (Emanuel)"],["34","Ursinhos com gravata (Rikelme Matias)"],["35","Dinossauro (Théo)"],["36","Dinossauro verde (Felipe)"]]}
+];
+const ALL=[];GROUPS.forEach(g=>g.items.forEach(it=>ALL.push({id:it[0],nome:it[1],n:ALL.length+1})));
+const byId=Object.fromEntries(ALL.map(m=>[m.id,m]));
+const NOMES={luma:"Luma",luana:"Luana"};
+const state={luma:new Set(),luana:new Set()};
+let eu=null, filtro="todos", db=null, unsubs=[];
+const $=id=>document.getElementById(id);
+
+if(!firebaseConfig){ $("err").textContent="O site ainda está sendo configurado."; $("entrar").disabled=true; }
+const app=firebaseConfig?initializeApp(firebaseConfig):null;
+const auth=app?getAuth(app):null; if(app) db=getFirestore(app);
+
+$("loginForm").addEventListener("submit",async e=>{
+  e.preventDefault(); if(!auth) return;
+  $("err").textContent=""; $("entrar").disabled=true;
+  try{ await signInWithEmailAndPassword(auth,$("quem").value+DOMINIO,$("senha").value); $("senha").value=""; }
+  catch(er){ $("err").textContent= er.code==="auth/too-many-requests" ? "Muitas tentativas. Espere um pouco e tente de novo." : "Senha incorreta. Confira e tente de novo."; }
+  finally{ $("entrar").disabled=false; }
+});
+$("sair").onclick=()=>signOut(auth);
+
+if(auth) onAuthStateChanged(auth,user=>{
+  unsubs.forEach(u=>u()); unsubs=[]; state.luma.clear(); state.luana.clear();
+  if(!user){ eu=null; $("appView").hidden=true; $("loginView").hidden=false; return; }
+  eu=(user.email||"").split("@")[0];
+  if(!NOMES[eu]){ signOut(auth); return; }
+  $("ola").textContent=`Olá, ${NOMES[eu]}!`;
+  $("loginView").hidden=true; $("appView").hidden=false;
+  ["luma","luana"].forEach(p=>unsubs.push(onSnapshot(doc(db,"escolhas",p),s=>{
+    state[p]=new Set(((s.exists()&&s.data().fotos)||[]).filter(x=>byId[x])); render();
+  },()=>toast("Não foi possível carregar as escolhas."))));
+  render();
+});
+
+const list=$("list");
+function render(){
+  list.textContent=""; let shown=0;
+  GROUPS.forEach(g=>{
+    const ms=g.items.map(i=>byId[i[0]]).filter(m=>{const a=state.luma.has(m.id),b=state.luana.has(m.id);return filtro==="todos"||(filtro==="luma"&&a)||(filtro==="luana"&&b)||(filtro==="ambas"&&a&&b)});
+    if(!ms.length) return; shown+=ms.length;
+    const s=document.createElement("section");
+    s.innerHTML=`<h2>${g.t}</h2><div class="grid"></div>`;
+    const grid=s.querySelector(".grid");
+    ms.forEach(m=>{
+      const a=state.luma.has(m.id),b=state.luana.has(m.id);
+      const c=document.createElement("article"); c.className="card"+(a?" sel-luma":"")+(b?" sel-luana":"");
+      c.innerHTML=`<button class="thumb" type="button" aria-label="Ampliar modelo ${m.n}"><img loading="lazy" src="fotos/${m.id}.jpg" alt="Modelo ${m.n}: ${m.nome}"></button>
+        <div class="info"><div class="top"><span class="num">Modelo ${m.n}</span>${a&&b?'<span class="tag" style="color:var(--both)">As duas</span>':""}</div>
+        <p class="c">${m.nome}</p>
+        <div class="picks"><button type="button" class="pick luma" aria-pressed="${a}" ${eu!=="luma"?"disabled":""}>${a?"✓ ":""}Luma</button><button type="button" class="pick luana" aria-pressed="${b}" ${eu!=="luana"?"disabled":""}>${b?"✓ ":""}Luana</button></div></div>`;
+      c.querySelector(".thumb").onclick=()=>openDlg(m.id);
+      const mine=c.querySelector(".pick."+eu); if(mine) mine.onclick=()=>toggle(m.id);
+      grid.appendChild(c);
+    });
+    list.appendChild(s);
+  });
+  if(!shown){const p=document.createElement("p");p.className="empty";p.textContent=filtro==="ambas"?"Ainda não há modelos escolhidos pelas duas.":"Nenhum modelo escolhido ainda.";list.appendChild(p)}
+  const pl=n=>n===1?"1 escolhida":n+" escolhidas";
+  $("cLuma").textContent=pl(state.luma.size); $("cLuana").textContent=pl(state.luana.size);
+}
+let fila=Promise.resolve();
+function toggle(id){
+  const s=state[eu]; s.has(id)?s.delete(id):s.add(id); render();
+  const fotos=ALL.filter(m=>s.has(m.id)).map(m=>m.id);
+  fila=fila.then(()=>setDoc(doc(db,"escolhas",eu),{fotos})).catch(()=>toast("Não deu para salvar. Confira a internet e tente de novo."));
+}
+function texto(p){const ms=ALL.filter(m=>state[p].has(m.id));if(!ms.length)return"";return `Fraldas do Vicente — escolhas da ${NOMES[p]} (${ms.length}):\n`+ms.map(m=>`• Modelo ${m.n} – ${m.nome}`).join("\n")}
+function copiar(p){const t=texto(p);if(!t){toast("Nenhum modelo escolhido ainda");return}
+  navigator.clipboard.writeText(t).then(()=>toast("Lista copiada")).catch(()=>toast("Não foi possível copiar"))}
+$("copyLuma").onclick=()=>copiar("luma"); $("copyLuana").onclick=()=>copiar("luana");
+document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{filtro=b.dataset.f;document.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===b));render()});
+let tt;function toast(m){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2400)}
+const dlg=$("dlg");let cur=0;
+function openDlg(id){cur=ALL.findIndex(m=>m.id===id);showDlg();if(!dlg.open)dlg.showModal()}
+function showDlg(){const m=ALL[cur];$("dlgImg").src=`fotos/${m.id}.jpg`;$("dlgImg").alt=m.nome;$("dlgCap").textContent=`Modelo ${m.n} · ${m.nome}`}
+$("prev").onclick=()=>{cur=(cur-1+ALL.length)%ALL.length;showDlg()};
+$("next").onclick=()=>{cur=(cur+1)%ALL.length;showDlg()};
+$("close").onclick=()=>dlg.close();
+dlg.addEventListener("click",e=>{if(e.target===dlg)dlg.close()});
+document.addEventListener("keydown",e=>{if(!dlg.open)return;if(e.key==="ArrowRight")$("next").click();if(e.key==="ArrowLeft")$("prev").click()});
+</script>
+</body>
+</html>

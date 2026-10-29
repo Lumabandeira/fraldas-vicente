@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /escolhas/{quem} {
+      allow read: if request.auth != null
+        && request.auth.token.email in ['luma@fraldas-vicente.app', 'luana@fraldas-vicente.app'];
+      allow write: if request.auth != null
+        && request.auth.token.email == quem + '@fraldas-vicente.app'
+        && request.resource.data.keys().hasOnly(['fotos'])
+        && request.resource.data.fotos is list
+        && request.resource.data.fotos.size() <= 40;
+    }
+  }
+}
