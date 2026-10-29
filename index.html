@@ -38,10 +38,10 @@
     </div>
   </header>
   <div class="bar" role="group" aria-label="Filtro">
-    <button class="chip" type="button" data-f="todos" aria-pressed="true">Todos</button>
-    <button class="chip" type="button" data-f="luma" aria-pressed="false">Escolhas da Luma</button>
-    <button class="chip" type="button" data-f="luana" aria-pressed="false">Escolhas da Luana</button>
-    <button class="chip" type="button" data-f="ambas" aria-pressed="false">Em comum</button>
+    <button class="chip" type="button" data-f="todos" aria-pressed="true">Todos (30)</button>
+    <button class="chip" type="button" data-f="luma" aria-pressed="false">Escolhas da Luma (0)</button>
+    <button class="chip" type="button" data-f="luana" aria-pressed="false">Escolhas da Luana (0)</button>
+    <button class="chip" type="button" data-f="ambas" aria-pressed="false">Em comum (0)</button>
   </div>
   <main id="list"></main>
 </div>
@@ -124,6 +124,9 @@ function render(){
   if(!shown){const p=document.createElement("p");p.className="empty";p.textContent=filtro==="ambas"?"Ainda não há modelos escolhidos pelas duas.":"Nenhum modelo escolhido ainda.";list.appendChild(p)}
   const pl=n=>n===1?"1 escolhida":n+" escolhidas";
   $("cLuma").textContent=pl(state.luma.size); $("cLuana").textContent=pl(state.luana.size);
+  const comum=[...state.luma].filter(x=>state.luana.has(x)).length;
+  const rot={todos:`Todos (${ALL.length})`,luma:`Escolhas da Luma (${state.luma.size})`,luana:`Escolhas da Luana (${state.luana.size})`,ambas:`Em comum (${comum})`};
+  document.querySelectorAll(".chip").forEach(b=>b.textContent=rot[b.dataset.f]);
 }
 let fila=Promise.resolve();
 function toggle(id){
