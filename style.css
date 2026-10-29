@@ -1,14 +1,13 @@
 /* Layout: cabeçalho com placar das duas irmãs, filtros fixos, grade de cartões em grupos na ordem da conversa */
-/* Tema claro fixo, tons pastel de enxoval: azul-céu, creme e bolinhas suaves */
 :root{
   color-scheme:light dark;
-  --bg:#eef6fc; --dots:#d8eaf7; --surface:#ffffff; --fg:#3a4a5c; --muted:#7a8a9c; --line:#d6e6f2;
-  --luma:#6a9fd4; --luma-soft:#e3effa; --luana:#e59ab4; --luana-soft:#fbe9ef;
-  --both:#7cbf9e; --note:#fff8ea; --title:#4f7fb3;
-  --display:"Fredoka", "Nunito Sans", system-ui, sans-serif; --body:"Nunito Sans", system-ui, sans-serif;
+  --bg:#f3f6f8; --surface:#ffffff; --fg:#1d2a33; --muted:#5d6d78; --line:#d9e2e8;
+  --luma:#2f63a8; --luma-soft:#e2ecf8; --luana:#b5476b; --luana-soft:#f8e4eb;
+  --both:#3d7d5a; --note:#eef3f1;
+  --display:"Young Serif", Georgia, serif; --body:"Nunito Sans", system-ui, sans-serif;
 }
 *{box-sizing:border-box}
-body{background-color:var(--bg);background-image:radial-gradient(var(--dots) 2.5px, transparent 3px);background-size:26px 26px;color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
 .wrap{max-width:1180px;margin:0 auto;padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 header h1{font-family:var(--display);font-weight:400;font-size:clamp(28px,5vw,42px);margin:0;text-wrap:balance;letter-spacing:-.01em}
 header p{color:var(--muted);margin:6px 0 0;max-width:62ch}
@@ -31,7 +30,7 @@ section h2{font-family:var(--display);font-weight:400;font-size:22px;margin:0}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-top:14px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
 .card.sel-luma{border-color:var(--luma)} .card.sel-luana{border-color:var(--luana)} .card.sel-luma.sel-luana{border-color:var(--both);box-shadow:0 0 0 2px var(--both)}
-.thumb{display:block;border:0;padding:0;background:var(--luma-soft);cursor:zoom-in;aspect-ratio:3/4;width:100%;max-width:100%}
+.thumb{display:block;border:0;padding:0;background:#0b0f12;cursor:zoom-in;aspect-ratio:3/4;width:100%;max-width:100%}
 .thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .info{padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px;flex:1}
 .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
@@ -70,17 +69,6 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px;margin
 .pick:disabled:hover{border-color:var(--line);color:var(--muted)}
 .pick.luma[aria-pressed="true"]:disabled:hover{border-color:var(--luma);color:#fff}
 .pick.luana[aria-pressed="true"]:disabled:hover{border-color:var(--luana);color:#fff}
-
-/* Acabamento do tema bebê */
-header h1,.box h1{color:var(--title)}
-.card,.who,.box{box-shadow:0 4px 14px rgba(106,159,212,.12)}
-.card{border-radius:18px}.who{border-radius:18px}.box{border-radius:22px}
-.pick{border-radius:999px}
-.chip[aria-pressed="true"]{background:var(--luma);border-color:var(--luma);color:#fff}
-.bar{background:rgba(238,246,252,.94);backdrop-filter:blur(4px)}
-header h1,.box h1,section h2,.num{font-weight:600}
-section h2{color:var(--title)}
-.box button{border-radius:999px}
 /* O navegador Samsung só deixa de escurecer o site sozinho quando o site declara ter um tema escuro.
    Este "tema escuro" repete as mesmas cores claras, então o visual continua igual. */
-@media (prefers-color-scheme:dark){:root{color-scheme:light dark}body{background-color:#eef6fc;color:#3a4a5c}}
+@media (prefers-color-scheme:dark){:root{color-scheme:light dark}body{background:#f3f6f8;color:#1d2a33}}
